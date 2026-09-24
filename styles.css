@@ -1,0 +1,704 @@
+/**
+ * session-rainbow-border — 核心光效动画与设置面板样式 (v2.0.0)
+ *
+ * 核心设计：
+ * 1. 深度适配 CC GUI 深色/浅色原生主题（Tailwind v4 色彩规范）。
+ * 2. 精准解决深色模式下文字发暗、对比度不足、下拉菜单选项黑底黑字等顽疾。
+ * 3. 针对原生 <select> 下拉框进行深度暗色质感美化，配备自定义指示箭头。
+ * 4. 内置高保真交互式实时预览卡片（Live Preview），即改即看。
+ * 5. 配备醒目的【💾 确定保存并应用】主操作按钮与动效反馈。
+ */
+
+/* ==========================================================================
+   CSS 自定义属性（支持顺滑角度旋转关键帧）
+   ========================================================================== */
+
+@property --session-rainbow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ==========================================================================
+   会话项基础隔离与边框容器定义
+   仅命中内层真实交互按钮 button 与活动标签 div[role="tab"]，严防双边框重叠
+   ========================================================================== */
+
+button:has(.sidebar-thread-status-processing),
+div[role="tab"]:has(.sidebar-thread-status-processing),
+.srb-preview-item.is-running {
+  position: relative !important;
+  isolation: isolate;
+  border-radius: 6px !important;
+  border-color: transparent !important;
+}
+
+/* 掏空中心区域，仅在外轮廓生成指定粗细的高精度发光边缘 */
+button:has(.sidebar-thread-status-processing)::after,
+div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+.srb-preview-item.is-running::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  z-index: 10;
+  padding: var(--session-border-thickness, 1.6px) !important;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* 背景呼吸微光衬底（提供环境氛围光晕） */
+button:has(.sidebar-thread-status-processing)::before,
+div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+.srb-preview-item.is-running::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   8 大酷炫视觉流光模式定义（通过 html[data-session-border-mode] 动态控制）
+   ========================================================================== */
+
+/* 1. 🌈 彩虹跑马灯（经典 360° 顺时针旋转，全光谱流光） */
+html[data-session-border-mode="rainbow-flow"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="rainbow-flow"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="rainbow-flow"] .srb-preview-item::after,
+:root:not([data-session-border-mode]) button:has(.sidebar-thread-status-processing)::after,
+:root:not([data-session-border-mode]) div[role="tab"]:has(.sidebar-thread-status-processing)::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    #ff3b30 0deg,
+    #ff9500 40deg,
+    #ffd60a 80deg,
+    #34c759 120deg,
+    #00c7be 160deg,
+    #32ade6 200deg,
+    #007aff 240deg,
+    #5856d6 280deg,
+    #af52de 320deg,
+    #ff2d55 345deg,
+    #ff3b30 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 2.2s) linear infinite !important;
+}
+html[data-session-border-mode="rainbow-flow"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="rainbow-flow"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="rainbow-flow"] .srb-preview-item::before,
+:root:not([data-session-border-mode]) button:has(.sidebar-thread-status-processing)::before,
+:root:not([data-session-border-mode]) div[role="tab"]:has(.sidebar-thread-status-processing)::before {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* 2. 💫 闪烁呼吸灯（极速闪灭呼吸 · 强烈生命律动感） */
+html[data-session-border-mode="pulse-breathing"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="pulse-breathing"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="pulse-breathing"] .srb-preview-item::after {
+  background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 50%, #6366f1 100%);
+  animation: srb-anim-pulse-breath var(--session-border-duration, 1.8s) ease-in-out infinite !important;
+}
+html[data-session-border-mode="pulse-breathing"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="pulse-breathing"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="pulse-breathing"] .srb-preview-item::before {
+  background: rgba(0, 240, 255, 0.12);
+  animation: srb-anim-pulse-bg var(--session-border-duration, 1.8s) ease-in-out infinite !important;
+}
+
+/* 3. 🔥 炽热烈焰（熔岩金焰 · 高能澎湃运转） */
+html[data-session-border-mode="fire-ember"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="fire-ember"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="fire-ember"] .srb-preview-item::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    #ff2200 0deg,
+    #ff7700 80deg,
+    #ffcc00 150deg,
+    #ff4500 240deg,
+    #ff0033 320deg,
+    #ff2200 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 1.6s) linear infinite !important;
+}
+html[data-session-border-mode="fire-ember"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="fire-ember"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="fire-ember"] .srb-preview-item::before {
+  background: rgba(255, 69, 0, 0.1);
+}
+
+/* 4. ⚡ 赛博霓虹（黑客矩阵绿光与电光青交错） */
+html[data-session-border-mode="cyber-matrix"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="cyber-matrix"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="cyber-matrix"] .srb-preview-item::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    #00ff66 0deg,
+    #00f0ff 90deg,
+    #050505 180deg,
+    #00ff66 270deg,
+    #10b981 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 2.0s) linear infinite !important;
+}
+html[data-session-border-mode="cyber-matrix"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="cyber-matrix"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="cyber-matrix"] .srb-preview-item::before {
+  background: rgba(0, 255, 102, 0.08);
+}
+
+/* 5. 🔮 幻彩极光（紫晶深邃梦幻流转） */
+html[data-session-border-mode="aurora-dream"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="aurora-dream"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="aurora-dream"] .srb-preview-item::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    #8b5cf6 0deg,
+    #ec4899 90deg,
+    #3b82f6 180deg,
+    #06b6d4 270deg,
+    #8b5cf6 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 2.8s) linear infinite !important;
+}
+html[data-session-border-mode="aurora-dream"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="aurora-dream"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="aurora-dream"] .srb-preview-item::before {
+  background: rgba(139, 92, 246, 0.09);
+}
+
+/* 6. 🚨 双色警报（红蓝高能对撞爆闪） */
+html[data-session-border-mode="police-alert"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="police-alert"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="police-alert"] .srb-preview-item::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    #ef4444 0deg,
+    #ef4444 170deg,
+    #ffffff 180deg,
+    #3b82f6 180deg,
+    #3b82f6 350deg,
+    #ffffff 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 1.2s) linear infinite !important;
+}
+html[data-session-border-mode="police-alert"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="police-alert"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="police-alert"] .srb-preview-item::before {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* 7. ✨ 流金彗星（高光扫尾 · 流星掠过） */
+html[data-session-border-mode="golden-comet"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="golden-comet"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="golden-comet"] .srb-preview-item::after {
+  background: conic-gradient(
+    from var(--session-rainbow-angle),
+    transparent 0deg,
+    rgba(234, 179, 8, 0.1) 180deg,
+    #eab308 300deg,
+    #ffffff 355deg,
+    #fef08a 360deg
+  );
+  animation: srb-anim-rotate var(--session-border-duration, 1.8s) linear infinite !important;
+}
+html[data-session-border-mode="golden-comet"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="golden-comet"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="golden-comet"] .srb-preview-item::before {
+  background: rgba(234, 179, 8, 0.07);
+}
+
+/* 8. 🌊 蔚蓝脉动（深海波浪 · 清爽护眼） */
+html[data-session-border-mode="ocean-wave"] button:has(.sidebar-thread-status-processing)::after,
+html[data-session-border-mode="ocean-wave"] div[role="tab"]:has(.sidebar-thread-status-processing)::after,
+div[data-preview-mode="ocean-wave"] .srb-preview-item::after {
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #06b6d4 100%);
+  animation: srb-anim-ocean-breath var(--session-border-duration, 2.4s) ease-in-out infinite !important;
+}
+html[data-session-border-mode="ocean-wave"] button:has(.sidebar-thread-status-processing)::before,
+html[data-session-border-mode="ocean-wave"] div[role="tab"]:has(.sidebar-thread-status-processing)::before,
+div[data-preview-mode="ocean-wave"] .srb-preview-item::before {
+  background: rgba(2, 132, 199, 0.09);
+  animation: srb-anim-pulse-bg var(--session-border-duration, 2.4s) ease-in-out infinite !important;
+}
+
+/* ==========================================================================
+   CSS 核心关键帧动画 (GPU 硬件加速)
+   ========================================================================== */
+
+@keyframes srb-anim-rotate {
+  to {
+    --session-rainbow-angle: 360deg;
+  }
+}
+
+@keyframes srb-anim-pulse-breath {
+  0%, 100% {
+    opacity: 0.2;
+    filter: brightness(0.85);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.35) drop-shadow(0 0 6px rgba(0, 240, 255, 0.8));
+  }
+}
+
+@keyframes srb-anim-ocean-breath {
+  0%, 100% {
+    opacity: 0.25;
+    filter: brightness(0.9);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.3) drop-shadow(0 0 6px rgba(56, 189, 248, 0.85));
+  }
+}
+
+@keyframes srb-anim-pulse-bg {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   设置面板界面深度重构样式 (.srb-*)
+   彻底适配深色主题，解决对比度低、看不清、黑底黑字问题
+   ========================================================================== */
+
+.srb-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 24px;
+  max-width: 720px;
+  color-scheme: dark light;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  box-sizing: border-box;
+}
+
+/* 设置主卡片：深色模式下具有分明的层次背景与精致边框 */
+.srb-card {
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* 默认/浅色模式 */
+  background: var(--color-background-primary-default, #ffffff);
+  border: 1px solid var(--color-border-primary, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark .srb-card,
+[data-theme="dark"] .srb-card {
+  /* 深色模式：石墨深灰背景，与底层画布形成清晰阶梯感 */
+  background: #141416 !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 顶部标题与状态区域 */
+.srb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.16);
+  padding-bottom: 14px;
+}
+
+.dark .srb-header,
+[data-theme="dark"] .srb-header {
+  border-bottom: 1px solid #27272a !important;
+}
+
+.srb-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.srb-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.dark .srb-title,
+[data-theme="dark"] .srb-title {
+  color: #f8fafc !important; /* 纯净亮白，极其清晰 */
+}
+
+.srb-desc {
+  font-size: 12px;
+  margin: 0;
+  color: var(--color-text-tertiary, #64748b);
+}
+
+.dark .srb-desc,
+[data-theme="dark"] .srb-desc {
+  color: #94a3b8 !important; /* 清晰浅蓝灰，不刺眼且可读性高 */
+}
+
+/* 运行中微光徽标 */
+.srb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.dark .srb-badge,
+[data-theme="dark"] .srb-badge {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #4ade80 !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+.srb-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: srb-dot-breath 1.4s ease-in-out infinite;
+}
+
+@keyframes srb-dot-breath {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* 实时效果预览卡片 (Live Preview) */
+.srb-preview-box {
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-background-secondary-default, #f8fafc);
+  border: 1px dashed rgba(127, 127, 127, 0.25);
+}
+
+.dark .srb-preview-box,
+[data-theme="dark"] .srb-preview-box {
+  background: #1a1a1f !important;
+  border: 1px dashed #3f3f46 !important;
+}
+
+.srb-preview-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary, #475569);
+}
+
+.dark .srb-preview-label,
+[data-theme="dark"] .srb-preview-label {
+  color: #cbd5e1 !important;
+}
+
+.srb-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  user-select: none;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .srb-preview-item,
+[data-theme="dark"] .srb-preview-item {
+  background: #24242a !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.srb-preview-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: #a855f7;
+}
+
+.srb-preview-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px #3b82f6;
+  flex-shrink: 0;
+  animation: srb-dot-breath 1.2s ease-in-out infinite;
+}
+
+.srb-preview-text {
+  flex: 1;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.dark .srb-preview-text,
+[data-theme="dark"] .srb-preview-text {
+  color: #f1f5f9 !important; /* 预览文本清晰明朗 */
+}
+
+/* 表单网格 */
+.srb-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.srb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.srb-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, #1e293b);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dark .srb-label,
+[data-theme="dark"] .srb-label {
+  color: #e2e8f0 !important; /* 表单标题高亮清晰白灰 */
+}
+
+/* ==========================================================================
+   深度定制的原生 Select 下拉框
+   原生内嵌精致 SVG 下拉箭头，深色主题下强制为高对比度背景与文字
+   ========================================================================== */
+
+.srb-select {
+  width: 100%;
+  height: 38px;
+  padding: 0 36px 0 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: all 0.15s ease-in-out;
+
+  /* 默认/浅色 */
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+}
+
+/* 深色模式下的 Select 深度强化 */
+.dark .srb-select,
+[data-theme="dark"] .srb-select {
+  color: #f8fafc !important; /* 亮白文字 */
+  background-color: #1e1e24 !important; /* 稳健深黑底色 */
+  border: 1px solid #3f3f46 !important; /* 精致清晰边框 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.srb-select:hover {
+  border-color: #94a3b8;
+}
+
+.dark .srb-select:hover,
+[data-theme="dark"] .srb-select:hover {
+  border-color: #52525b !important;
+  background-color: #24242c !important;
+}
+
+.srb-select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* 强制为下拉弹出的所有 option 设定深色背景与白色文字，解决系统弹出层黑底黑字问题 */
+.srb-select option {
+  background-color: #1e1e24 !important;
+  color: #f8fafc !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+}
+
+.srb-hint {
+  font-size: 12px;
+  color: var(--color-text-tertiary, #64748b);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.dark .srb-hint,
+[data-theme="dark"] .srb-hint {
+  color: #94a3b8 !important; /* 辅助说明文字清晰不发暗 */
+}
+
+/* ==========================================================================
+   底部操作栏：显眼的【确定保存并应用】主按钮 + 【恢复默认值】辅按钮
+   ========================================================================== */
+
+.srb-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(127, 127, 127, 0.16);
+  gap: 12px;
+}
+
+.dark .srb-footer,
+[data-theme="dark"] .srb-footer {
+  border-top: 1px solid #27272a !important;
+}
+
+.srb-footer-left {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.srb-hint-tip {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.dark .srb-hint-tip,
+[data-theme="dark"] .srb-hint-tip {
+  color: #a1a1aa !important;
+}
+
+.srb-save-toast {
+  font-size: 12.5px;
+  color: #16a34a;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: all 0.2s ease;
+}
+
+.dark .srb-save-toast,
+[data-theme="dark"] .srb-save-toast {
+  color: #34d399 !important;
+}
+
+.srb-save-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.srb-toast-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.srb-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 恢复默认值（幽灵辅按钮） */
+.srb-btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: var(--color-text-secondary, #64748b);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.dark .srb-btn-reset,
+[data-theme="dark"] .srb-btn-reset {
+  color: #cbd5e1 !important;
+  border-color: #3f3f46 !important;
+}
+
+.srb-btn-reset:hover {
+  background: rgba(127, 127, 127, 0.1);
+  color: #0f172a;
+}
+
+.dark .srb-btn-reset:hover,
+[data-theme="dark"] .srb-btn-reset:hover {
+  background: #27272a !important;
+  color: #ffffff !important;
+  border-color: #52525b !important;
+}
+
+/* 💾 确定保存并应用（高亮主按钮，CTA 视觉风格） */
+.srb-btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 7px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.srb-btn-save:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+  transform: translateY(-1px);
+}
+
+.srb-btn-save:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+
+/* 保存成功瞬间的高亮动效 */
+.srb-btn-save.is-success {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+}
