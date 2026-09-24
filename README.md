@@ -1,2 +1,12 @@
-# ccgui-plugin-session-rainbow-border
-工作区对话跑马灯 - CC GUI 边框运行高亮与多光效插件
+# CC GUI 工作区对话跑马灯 (Session Rainbow Border)
+
+左侧工作区面板中，为当前正在运行中的对话列表项添加高亮边框。
+
+## 功能特性
+- **8 种光效模式**：彩虹跑马灯、闪烁呼吸灯、炽热烈焰、赛博霓虹、幻彩极光、双色警报、流金彗星、蔚蓝脉动。
+- **自定义设置面板**：在 CC GUI 设置面板中提供原生下拉选择框与实时 Live Preview 预览条目，支持独立调节粗细与流动速度。
+- **深色主题原生适配**：深度适配 CC GUI 暗色高对比度主题。
+
+## 安装方式
+1. 从 CC GUI 插件市场一键安装；
+2. 或下载本项目 Release 附件解压至 `~/.ccgui-next/plugins/session-rainbow-border`。
