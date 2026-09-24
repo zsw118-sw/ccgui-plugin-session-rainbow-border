@@ -1,0 +1,16 @@
+{
+  "id": "session-rainbow-border",
+  "name": "工作区对话跑马灯",
+  "version": "2.0.0",
+  "minAppVersion": "1.0.0",
+  "sdkVersion": "*",
+  "author": "User",
+  "description": "为工作区正在执行/对话中的会话项添加多风格酷炫流光高亮边框。内置闪烁呼吸灯、经典彩虹、赛博霓虹、炽热烈焰等多种光效，支持在设置面板自定义动效模式、速度与粗细。",
+  "tier": "js",
+  "license": "MIT",
+  "permissions": [
+    "storage",
+    "ui:settings-section",
+    "theme"
+  ]
+}
